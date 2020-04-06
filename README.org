@@ -1,0 +1,88 @@
+#+TITLE: Analysis of COVID-19 cases by country
+
+Based on [[https://github.com/CSSEGISandData/COVID-19][data provided by Johns Hopkins CSSE]]. Partially inspired by
+[[https://www.zeit.de/wissen/gesundheit/coronavirus-echtzeit-karte-deutschland-landkreise-infektionen-ausbreitung][Die Zeit]] and [[http://www.dkriesel.com/corona][David Kriesel]].
+
+* Changelog
+
+- [2020-04-08 Mi] Initial cleaned-up version.
+
+* Todo
+
+- [ ] Scale numbers per capita.
+- [ ] Correlate mitigation events.
+
+* Selected countries
+** Germany
+
+[[file:plots/Germany.png]]
+
+** Italy
+
+[[file:plots/Italy.png]]
+
+** European Union
+
+[[file:plots/Europe.png]]
+
+** Worldwide
+
+[[file:plots/World.png]]
+
+* Other countries
+
+- [[file:plots/Europe.pdf][European Union]]
+- [[file:plots/World.pdf][World]]
+
+** Europe
+
+- [[file:plots/Austria.pdf][Austria]]
+- [[file:plots/Belgium.pdf][Belgium]]
+- [[file:plots/Bulgaria.pdf][Bulgaria]]
+- [[file:plots/Croatia.pdf][Croatia]]
+- [[file:plots/Cyprus.pdf][Cyprus]]
+- [[file:plots/Czechia.pdf][Czechia]]
+- [[file:plots/Denmark.pdf][Denmark]]
+- [[file:plots/Estonia.pdf][Estonia]]
+- [[file:plots/Finland.pdf][Finland]]
+- [[file:plots/France.pdf][France]]
+- [[file:plots/Germany.pdf][Germany]]
+- [[file:plots/Greece.pdf][Greece]]
+- [[file:plots/Hungary.pdf][Hungary]]
+- [[file:plots/Ireland.pdf][Ireland]]
+- [[file:plots/Italy.pdf][Italy]]
+- [[file:plots/Lithuania.pdf][Lithuania]]
+- [[file:plots/Luxembourg.pdf][Luxembourg]]
+- [[file:plots/Netherlands.pdf][Netherlands]]
+- [[file:plots/Norway.pdf][Norway]]
+- [[file:plots/Poland.pdf][Poland]]
+- [[file:plots/Portugal.pdf][Portugal]]
+- [[file:plots/Romania.pdf][Romania]]
+- [[file:plots/Slovenia.pdf][Slovenia]]
+- [[file:plots/Spain.pdf][Spain]]
+- [[file:plots/Sweden.pdf][Sweden]]
+- [[file:plots/Switzerland.pdf][Switzerland]]
+- [[file:plots/Turkey.pdf][Turkey]]
+- [[file:plots/United-Kingdom.pdf][United Kingdom]]
+
+
+** Americas
+
+- [[file:plots/Brazil.pdf][Brazil]]
+- [[file:plots/Canada.pdf][Canada]]
+- [[file:plots/United-States.pdf][United States]]
+
+** Asia
+
+- [[file:plots/China.pdf][China]] ([[file:plots/China-Hubei.pdf][Hubei]], [[file:plots/China-Rest.pdf][Rest]])
+- [[file:plots/Hong-Kong.pdf][Hong Kong]]
+- [[file:plots/Iran.pdf][Iran]]
+- [[file:plots/Japan.pdf][Japan]]
+- [[file:plots/South-Korea.pdf][South Korea]]
+- [[file:plots/Taiwan.pdf][Taiwan]]
+
+** Pacific
+
+- [[file:plots/Australia.pdf][Australia]]
+- [[file:plots/New-Zealand.pdf][New Zealand]]
+

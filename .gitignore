@@ -1,0 +1,8 @@
+# Data from Johns Hopkins CSSE
+time_series_covid19_confirmed_global.csv
+time_series_covid19_deaths_global.csv
+
+# Temp files
+.DS_Store
+.Rproj.user
+.Rhistory
