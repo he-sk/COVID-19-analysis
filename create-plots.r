@@ -123,9 +123,6 @@ plot_country <- function(ds, country, filter_fun = filter_country_generic, plot_
   ds <- subset(ds, Date >= first_date)
   ds.daily_change <- subset(ds.daily_change, Date >= first_date)
   
-  # stop generation of Rplots.pdf when running from a script
-  pdf(NULL)
-  
   p <- ggarrange(plot_cumulative(ds, country), 
                  plot_doubling_rate(ds, first_date),
                  #plot_daily_change(ds.daily_change, max_daily_change),
