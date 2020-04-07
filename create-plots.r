@@ -105,10 +105,9 @@ plot_daily_cases <- function(ds, value, color) {
 }
 
 plot_doubling_rate <- function(ds, first_date) {
-  cutoff_date <- min(subset(ds, Value == "Deaths" & Count >= 1)$Date)
-  ds <- sqldf('SELECT ds1.Value, ds1.Date as Date, ds1.Date - max(ds2.Date) as Doubling_Rate FROM ds AS ds1, ds AS ds2 WHERE ds1.Count / 2 > ds2.Count AND ds1.Count > 0 AND ds1.Value = ds2.Value GROUP BY ds1.Value, ds1.Date')
-  ds <- subset(ds, Date >= cutoff_date)
-  ggplot(ds, aes(x = Date, y = Doubling_Rate, color = Value)) +
+  ds <- sqldf('SELECT ds1.Value, ds1.Date as Date, ds1.Date - max(ds2.Date) as Doubling_Rate FROM ds AS ds1, ds AS ds2 WHERE ds1.Count / 2 >= ds2.Count AND ds1.Value = ds2.Value GROUP BY ds1.Value, ds1.Date')
+  ds <- ddply(ds, .(Value), transform, Rolling_Doubling_Ratee = TTR::SMA(Doubling_Rate, 3))
+  ggplot(ds, aes(x = Date, y = Rolling_Doubling_Ratee, color = Value)) +
     geom_line(linetype = "solid", size = 2) +
     scale_x_date(NULL, expand = c(0, 0), limits = c(first_date, NA)) +
     scale_y_continuous(NULL, expand = c(0, 0), limits = c(0, NA), labels = scales::number) +
