@@ -56,6 +56,13 @@ filter_country_rename <- function(old_name) {
   })
 }
 
+filter_country_region <- function(countries) {
+  return(function(ds, country) {
+    ds <- subset(ds, Country.Region %in% countries)
+    ddply(ds, .(Date, Value), summarize, Count = sum(Count))
+  })
+}
+
 plot_cumulative <- function(ds, country) {
   ggplot(ds, aes(x = Date, y = Count, color = Value, fill = Value)) + 
     geom_area(position = "identity", alpha = 0.5) +
@@ -138,21 +145,67 @@ plot_country <- function(ds, country, filter_fun = filter_country_generic, plot_
 
 ds <- read_data()
 
-# World
 plot_country(ds, "World", function(ds, country) {
   ddply(ds, .(Date, Value), summarize, Count = sum(Count))
 }, plot_png = T)
 
-# Europe
-plot_country(ds, "Europe", function(ds, country) {
-  ds <- subset(ds, Country.Region %in% c("Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus",
-                                         "Czechia", "Denmark", "Estonia", "Finland", "France",
-                                         "Germany", "Greece", "Hungary", "Ireland", "Italy",
-                                         "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands",
-                                         "Poland", "Portugal", "Romania", "Slovakia", "Slovenia",
-                                         "Spain", "Sweden"))
-  ddply(ds, .(Date, Value), summarize, Count = sum(Count))
-}, plot_png = T)
+plot_country(ds, "European-Union", filter_country_region(
+  c("Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus",
+    "Czechia", "Denmark", "Estonia", "Finland", "France",
+    "Germany", "Greece", "Hungary", "Ireland", "Italy",
+    "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands",
+    "Poland", "Portugal", "Romania", "Slovakia", "Slovenia",
+    "Spain", "Sweden")), 
+  plot_png = T)
+
+plot_country(ds, "Africa", filter_country_region(
+  c("Algeria", "Angola", "Benin", "Burkina Faso", "Cabo Verde", 
+    "Cameroon", "Central African Republic", "Chad", "Congo (Brazzaville)", 
+    "Congo (Kinshasa)", "Cote d'Ivoire", "Djibouti", "Egypt", "Equatorial Guinea", 
+    "Eritrea", "Eswatini", "Ethiopia", "Gabon", "Gambia", 
+    "Ghana", "Guinea", "Kenya", "Liberia", "Madagascar", 
+    "Malaysia", "Maldives", "Mauritania", "Mauritius", "Morocco", 
+    "Namibia", "Niger", "Nigeria", "Panama", "Senegal", 
+    "Seychelles", "Somalia", "South Africa", "Togo", "Tunisia", 
+    "Uganda", "Zambia", "Zimbabwe", "Mozambique", "Libya", 
+    "Guinea-Bissau", "Mali", "Botswana", "Burundi", "Sierra Leone", 
+    "Malawi", "South Sudan", "Western Sahara", "Sao Tome and Principe")))
+
+plot_country(ds, "Americas", filter_country_region(
+  c("Antigua and Barbuda", "Argentina", "Bahamas", "Barbados", "Bolivia",
+    "Brazil", "Canada", "Chile", "Colombia", "Costa Rica", "Cuba", 
+    "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", 
+    "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Nicaragua", 
+    "Paraguay", "Peru", "Rwanda", "Saint Lucia", "Saint Vincent and the Grenadines", 
+    "Suriname", "Trinidad and Tobago", "Uruguay", "US", 
+    "Venezuela", "Dominica", "Grenada", "Belize", "Saint Kitts and Nevis")))
+
+plot_country(ds, "Asia", filter_country_region(
+  c("Afghanistan", "Armenia", "Azerbaijan", "Bahrain", "Bangladesh", 
+    "Bhutan", "Brunei", "Cambodia", "China", "Fiji", "Georgia", 
+    "India", "Indonesia", "Iran", "Iraq", "Israel", 
+    "Japan", "Jordan", "Kazakhstan", "Korea, South", "Kuwait", 
+    "Kyrgyzstan", "Lebanon", "Mongolia", "Nepal", "Oman", 
+    "Pakistan", "Philippines", "Qatar", "Saudi Arabia", "Singapore", 
+    "Sri Lanka", "Sudan", "Taiwan*", "Thailand", "United Arab Emirates", 
+    "Uzbekistan", "Vietnam", "Syria", "Timor-Leste", "Laos", 
+    "West Bank and Gaza", "Burma")))
+
+plot_country(ds, "Europe", filter_country_region(
+  c("Albania", "Andorra", "Austria", "Belarus", "Belgium", 
+    "Bosnia and Herzegovina", "Bulgaria", "Croatia", "Cyprus", "Czechia", 
+    "Denmark", "Estonia", "Finland", "France", "Germany", 
+    "Greece", "Holy See", "Hungary", "Iceland", "Ireland", 
+    "Italy", "Kosovo", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", 
+    "Malta", "Moldova", "Monaco", "Montenegro", "Netherlands", 
+    "North Macedonia", "Norway", "Poland", "Portugal", "Romania", 
+    "Russia", "San Marino", "Serbia", "Slovakia", "Slovenia", 
+    "Spain", "Sweden", "Switzerland", "Turkey", "Ukraine", "United Kingdom")))
+
+plot_country(ds, "Oceania", filter_country_region(
+  c("Australia", "New Zealand", "Papua New Guinea", "Tanzania")))
+
+# Countries
 plot_country(ds, "Austria")
 plot_country(ds, "Belgium")
 plot_country(ds, "Bulgaria")

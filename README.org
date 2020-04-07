@@ -23,7 +23,7 @@ Based on [[https://github.com/CSSEGISandData/COVID-19][data provided by Johns Ho
 
 ** European Union
 
-[[file:plots/Europe.png]]
+[[file:plots/European-Union.png]]
 
 ** Worldwide
 
@@ -31,8 +31,13 @@ Based on [[https://github.com/CSSEGISandData/COVID-19][data provided by Johns Ho
 
 * Other countries
 
-- [[file:plots/Europe.pdf][European Union]]
+- [[file:plots/European-Union.pdf][European Union]]
 - [[file:plots/World.pdf][World]]
+- [[file:plots/Africa.pdf][Africa]]
+- [[file:plots/Americas.pdf][Americas]]
+- [[file:plots/Asia.pdf][Asia]]
+- [[file:plots/Europe.pdf][Europe]]
+- [[file:plots/Oceania.pdf][Oceania]]
 
 ** Europe
 
@@ -65,7 +70,6 @@ Based on [[https://github.com/CSSEGISandData/COVID-19][data provided by Johns Ho
 - [[file:plots/Turkey.pdf][Turkey]]
 - [[file:plots/United-Kingdom.pdf][United Kingdom]]
 
-
 ** Americas
 
 - [[file:plots/Brazil.pdf][Brazil]]
@@ -81,7 +85,7 @@ Based on [[https://github.com/CSSEGISandData/COVID-19][data provided by Johns Ho
 - [[file:plots/South-Korea.pdf][South Korea]]
 - [[file:plots/Taiwan.pdf][Taiwan]]
 
-** Pacific
+** Oceania
 
 - [[file:plots/Australia.pdf][Australia]]
 - [[file:plots/New-Zealand.pdf][New Zealand]]
