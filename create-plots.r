@@ -100,7 +100,7 @@ plot_daily_cases <- function(ds, value, color) {
     geom_bar(stat = "identity", color = "lightgrey", fill = "lightgrey", alpha = 0.5) +
     geom_line(aes(x = Date, y = Rolling_New_Cases), linetype = "solid", color = color, size = 2) +
     scale_x_date(NULL, expand = c(0, 0)) +
-    scale_y_continuous(NULL, expand = c(0, 0)) +
+    scale_y_continuous(NULL, expand = c(0, 0), labels = scales::number) +
     labs(subtitle = sprintf("Daily new %s", tolower(value)))
 }
 
@@ -111,7 +111,7 @@ plot_doubling_rate <- function(ds, first_date) {
   ggplot(ds, aes(x = Date, y = Doubling_Rate, color = Value)) +
     geom_line(linetype = "solid", size = 2) +
     scale_x_date(NULL, expand = c(0, 0), limits = c(first_date, NA)) +
-    scale_y_continuous(NULL, expand = c(0, 0), limits = c(0, NA)) +
+    scale_y_continuous(NULL, expand = c(0, 0), limits = c(0, NA), labels = scales::number) +
     scale_color_manual(values = colors) +
     labs(subtitle = "Days since last doubling")
 }
