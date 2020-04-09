@@ -8,10 +8,12 @@ library(scales)
 library(sqldf)
 
 theme_set(theme_bw())
-theme_update(panel.grid.minor.y = element_blank(),
-             panel.grid.minor.x = element_blank(),
+theme_update(panel.grid.minor = element_blank(),
+             panel.grid.major.x = element_blank(),
              plot.subtitle = element_text(size = 9),
-             legend.position = "none")
+             legend.position = "none",
+             panel.border = element_blank(),
+             axis.line = element_line(color = "black", size = 0.5))
 
 colors <- c("#7570b3", "#d95f02")
 
@@ -33,8 +35,12 @@ parse_dates <- function(ds) {
 
 read_data <- function() {
   ds <- rbind(reshape_data(read.csv("time_series_covid19_deaths_global.csv"), "Deaths"),
-              reshape_data(read.csv("time_series_covid19_confirmed_global.csv"), "Cases"))
+              reshape_data(read.csv("time_series_covid19_confirmed_global.csv"), "Infections"))
   ds <- parse_dates(ds)
+  ds <- within(ds, {
+    Value <- factor(Value, levels = c("Infections", "Deaths"))
+  })
+  ds
 }
 
 filter_country_generic <- function(ds, country) {
@@ -65,13 +71,21 @@ filter_country_region <- function(countries) {
 
 plot_cumulative <- function(ds) {
   ggplot(ds, aes(x = Date, y = Count, color = Value, fill = Value)) + 
-    geom_area(position = "identity", alpha = 0.5) +
+    geom_area(position = "identity", alpha = 0.5, color = NA) +
     scale_x_date(NULL, expand = c(0, 0)) +
     #scale_y_continuous(NULL, trans = "log10", expand = c(0, 0)) +
     scale_y_continuous(NULL, expand = c(0, 0), labels = scales::number) +
     scale_fill_manual(values = colors) +
     scale_color_manual(values = colors) +
-    labs(subtitle = "Cumulative cases")
+    labs(subtitle = "Cumulative progression") +
+    theme(legend.position = c(0, 1),
+          legend.justification = c(0, 1),
+          legend.title = element_blank(),
+          legend.text = element_text(margin = margin(l = 3, unit = "pt")),
+          legend.margin = margin(t=0, l=3, r=3, unit = "pt"),
+          legend.box.margin = margin(t=0, l=1, unit = "pt"),
+          legend.background = element_rect(fill = "white"),
+          legend.box.background = element_blank())
 }
 
 compute_daily_change <- function(ds) {
@@ -108,7 +122,7 @@ plot_daily_cases <- function(ds, value, color) {
     geom_line(aes(x = Date, y = Rolling_New_Cases), linetype = "solid", color = color, size = 2) +
     scale_x_date(NULL, expand = c(0, 0)) +
     scale_y_continuous(NULL, expand = c(0, 0), labels = scales::number) +
-    labs(subtitle = sprintf("Daily new %s", tolower(value)))
+    labs(subtitle = sprintf("Daily reported %s", tolower(value)))
 }
 
 plot_doubling_rate <- function(ds, first_date) {
@@ -133,7 +147,7 @@ plot_country <- function(ds, country, filter_fun = filter_country_generic, plot_
   p <- ggarrange(plot_cumulative(ds), 
                  plot_doubling_rate(ds, first_date),
                  #plot_daily_change(ds.daily_change, max_daily_change),
-                 plot_daily_cases(ds.daily_change, "Cases", colors[1]),
+                 plot_daily_cases(ds.daily_change, "Infections", colors[1]),
                  plot_daily_cases(ds.daily_change, "Deaths", colors[2]),
                  ncol = 1, nrow = 4, heights = c(1.5, 1, 1, 1), align = "hv")
   country <- gsub(' ', '-', country)
