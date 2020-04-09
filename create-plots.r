@@ -63,7 +63,7 @@ filter_country_region <- function(countries) {
   })
 }
 
-plot_cumulative <- function(ds, country) {
+plot_cumulative <- function(ds) {
   ggplot(ds, aes(x = Date, y = Count, color = Value, fill = Value)) + 
     geom_area(position = "identity", alpha = 0.5) +
     scale_x_date(NULL, expand = c(0, 0)) +
@@ -130,7 +130,7 @@ plot_country <- function(ds, country, filter_fun = filter_country_generic, plot_
   ds <- subset(ds, Date >= first_date)
   ds.daily_change <- subset(ds.daily_change, Date >= first_date)
   
-  p <- ggarrange(plot_cumulative(ds, country), 
+  p <- ggarrange(plot_cumulative(ds), 
                  plot_doubling_rate(ds, first_date),
                  #plot_daily_change(ds.daily_change, max_daily_change),
                  plot_daily_cases(ds.daily_change, "Cases", colors[1]),
