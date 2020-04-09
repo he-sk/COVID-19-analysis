@@ -82,6 +82,7 @@ Based on [[https://github.com/CSSEGISandData/COVID-19][data provided by Johns Ho
 - [[file:plots/Hong-Kong.pdf][Hong Kong]]
 - [[file:plots/Iran.pdf][Iran]]
 - [[file:plots/Japan.pdf][Japan]]
+- [[file:plots/Singapore.pdf][Singapore]]
 - [[file:plots/South-Korea.pdf][South Korea]]
 - [[file:plots/Taiwan.pdf][Taiwan]]
 

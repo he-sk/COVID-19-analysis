@@ -257,6 +257,7 @@ plot_country(ds, "Iran")
 plot_country(ds, "Japan")
 plot_country(ds, "South Korea", filter_country_rename("Korea, South"))
 plot_country(ds, "Taiwan", filter_country_rename("Taiwan*"))
+plot_country(ds, "Singapore")
 
 # Pacific
 plot_country(ds, "Australia", filter_country_summarize)
