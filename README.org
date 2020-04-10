@@ -3,6 +3,7 @@
 Based on [[https://github.com/CSSEGISandData/COVID-19][data provided by Johns Hopkins CSSE]]. Partially inspired by
 [[https://www.zeit.de/wissen/gesundheit/coronavirus-echtzeit-karte-deutschland-landkreise-infektionen-ausbreitung][Die Zeit]] and [[http://www.dkriesel.com/corona][David Kriesel]].
 
+- Plots show development in a country after first reported death.
 - Blue and red lines in Days since last doubling show 3-day moving average.
 - Blue and red lines in Daily reported cases and deaths show 5-day moving average.
 
