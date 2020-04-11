@@ -7,6 +7,8 @@ Based on [[https://github.com/CSSEGISandData/COVID-19][data provided by Johns Ho
 - Blue and red lines in Days since last doubling show 3-day moving average.
 - Blue and red lines in Daily reported cases and deaths show 5-day moving average.
 
+Last update: [2020-04-11 Sa]
+
 * Changelog
 
 - [2020-04-08 Mi] Initial cleaned-up version.
