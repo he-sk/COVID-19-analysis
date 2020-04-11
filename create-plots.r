@@ -119,13 +119,22 @@ plot_daily_change <- function(ds, max_value) {
     labs(subtitle = "Daily rate of change")
 }
 
+adaptive_number_scale <- function(x) {
+  max_value <- max(x, na.rm = T)
+  if (max_value <= 1) {
+    scales::number(x, accuracy = 0.1)
+  } else {
+    scales::number(x)
+  }
+}
+
 plot_daily_cases <- function(ds, value, color) {
   ds <- subset(ds, Value == value)
   ggplot(ds, aes(x = Date, y = New_Cases)) +
     geom_bar(stat = "identity", color = "lightgrey", fill = "lightgrey", alpha = 0.5) +
     geom_line(aes(x = Date, y = Rolling_New_Cases), linetype = "solid", color = color, size = 2) +
     scale_x_date(NULL, expand = c(0, 0)) +
-    scale_y_continuous(NULL, expand = c(0, 0), labels = scales::number) +
+    scale_y_continuous(NULL, expand = c(0, 0), labels = adaptive_number_scale) +
     labs(subtitle = sprintf("Daily reported %s", tolower(value)))
 }
 
