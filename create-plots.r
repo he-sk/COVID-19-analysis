@@ -88,6 +88,10 @@ plot_cumulative <- function(ds) {
           legend.box.background = element_blank())
 }
 
+try_sma <- function(x, n) {
+  tryCatch(TTR::SMA(x, n), error = function(e) { x })
+}
+
 compute_daily_change <- function(ds) {
   ds <- ds[order(ds$Value, ds$Date), ]
   ds <- ddply(ds, .(Value), transform, Day_Before = shift(Count))
@@ -96,8 +100,8 @@ compute_daily_change <- function(ds) {
     Daily_Change <- ifelse(Daily_Change == Inf, NA, Daily_Change)
     New_Cases <- Count - Day_Before
   })
-  ds <- ddply(ds, .(Value), transform, Rolling_Daily_Change = TTR::SMA(Daily_Change, 5))
-  ds <- ddply(ds, .(Value), transform, Rolling_New_Cases = TTR::SMA(New_Cases, 5))
+  ds <- ddply(ds, .(Value), transform, Rolling_Daily_Change = try_sma(Daily_Change, 5))
+  ds <- ddply(ds, .(Value), transform, Rolling_New_Cases = try_sma(New_Cases, 5))
   max_daily_change <- ceiling(max(ds$Rolling_Daily_Change, na.rm = T) * 20) / 20
   ds <- within(ds, {
     Daily_Change <- ifelse(Daily_Change < max_daily_change, Daily_Change, max_daily_change)
@@ -127,8 +131,8 @@ plot_daily_cases <- function(ds, value, color) {
 
 plot_doubling_rate <- function(ds, first_date) {
   ds <- sqldf('SELECT ds1.Value, ds1.Date as Date, ds1.Date - max(ds2.Date) as Doubling_Rate FROM ds AS ds1, ds AS ds2 WHERE ds1.Count / 2 >= ds2.Count AND ds1.Value = ds2.Value GROUP BY ds1.Value, ds1.Date')
-  ds <- ddply(ds, .(Value), transform, Rolling_Doubling_Ratee = TTR::SMA(Doubling_Rate, 3))
-  ggplot(ds, aes(x = Date, y = Rolling_Doubling_Ratee, color = Value)) +
+  ds <- ddply(ds, .(Value), transform, Rolling_Doubling_Rate = try_sma(Doubling_Rate, 3))
+  ggplot(ds, aes(x = Date, y = Rolling_Doubling_Rate, color = Value)) +
     geom_line(linetype = "solid", size = 2) +
     scale_x_date(NULL, expand = c(0, 0), limits = c(first_date, NA)) +
     scale_y_continuous(NULL, expand = c(0, 0), limits = c(0, NA), labels = scales::number) +
@@ -233,19 +237,19 @@ plot_country(ds, "France", filter_country_summarize)
 plot_country(ds, "Germany", plot_png = T)
 plot_country(ds, "Greece")
 plot_country(ds, "Hungary")
-#plot_country(ds, "Iceland")
+plot_country(ds, "Iceland")
 plot_country(ds, "Ireland")
 plot_country(ds, "Italy", plot_png = T)
-#plot_country(ds, "Latvia")
+plot_country(ds, "Latvia")
 plot_country(ds, "Lithuania")
 plot_country(ds, "Luxembourg")
-#plot_country(ds, "Malta")
+plot_country(ds, "Malta")
 plot_country(ds, "Netherlands", filter_country_summarize)
 plot_country(ds, "Norway")
 plot_country(ds, "Poland")
 plot_country(ds, "Portugal")
 plot_country(ds, "Romania")
-#plot_country(ds, "Slovakia")
+plot_country(ds, "Slovakia")
 plot_country(ds, "Slovenia")
 plot_country(ds, "Spain")
 plot_country(ds, "Sweden")
