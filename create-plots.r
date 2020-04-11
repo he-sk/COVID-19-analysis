@@ -17,54 +17,64 @@ theme_update(panel.grid.minor = element_blank(),
 
 colors <- c("#7570b3", "#d95f02")
 
-reshape_data <- function(ds, value) {
+read_data_ecdc <- function() {
+  ds <- read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv", na.strings = "", fileEncoding = "UTF-8-BOM")[c(1, 7, 5, 6)]
+  names(ds) <- c("Date", "Location", "Infections", "Deaths")
+  ds$Date <- as.Date(strptime(ds$Date, format = "%d/%m/%Y"))
+  ds <- ds[order(ds$Date), ]
+  ds <- ddply(ds, .(Location), transform,
+              Infections = cumsum(Infections),
+              Deaths = cumsum(Deaths))
+  ds <- melt(ds, id.vars = c("Date", "Location"), variable.name = "Value", value.name = "Count")
+  ds
+}
+
+reshape_data_jhu <- function(ds, value) {
   ds <- melt(ds, id.vars = c("Country.Region", "Province.State", "Lat", "Long"), variable.name = "Date", value.name = "Count")
   ds$Value <- value
   ds
 }
 
-parse_dates <- function(ds) {
+read_data_jhu <- function() {
+  ds <- rbind(reshape_data_jhu(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"), "Deaths"),
+              reshape_data_jhu(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"), "Infections"))
   ds <- within(ds, {
-    Day <- gsub("^X([0-9]+)\\.([0-9]+)\\.([0-9]+)", "\\2", Date)
-    Month <- gsub("^X([0-9]+)\\.([0-9]+)\\.([0-9]+)", "\\1", Date)
-    Year <- gsub("^X([0-9]+)\\.([0-9]+)\\.([0-9]+)", "20\\3", Date)
-    Date <- as.Date(as.POSIXct(sprintf("%s-%s-%s", Year, Month, Day), format = "%Y-%m-%d"))
+    Date <- as.Date(strptime(Date, format = 'X%m.%d.%y'))
+    Value <- factor(Value, levels = c("Infections", "Deaths"))
+    Lat <- NULL
+    Long <- NULL
+  })
+  ds
+}
+
+filter_jhu <- function(ds, location, filter_fun = filter_jhu_province) {
+  ds <- filter_fun(ds)
+  ds <- within(ds, {
+    Location <- location
+    Country.Region <- NULL
+    Province.State <- NULL
   })
   ds
 }
 
 read_data <- function() {
-  ds <- rbind(reshape_data(read.csv("time_series_covid19_deaths_global.csv"), "Deaths"),
-              reshape_data(read.csv("time_series_covid19_confirmed_global.csv"), "Infections"))
-  ds <- parse_dates(ds)
-  ds <- within(ds, {
-    Value <- factor(Value, levels = c("Infections", "Deaths"))
-  })
+  ds.ecdc <- read_data_ecdc()
+  ds.jhu <- read_data_jhu()
+  ds <- rbind(ds.ecdc,
+              filter_jhu(ds.jhu, "Hong_Kong", function(ds) subset(ds, Province.State == "Hong Kong")),
+              filter_jhu(ds.jhu, "China_Hubei", function(ds) subset(ds, Province.State == "Hubei")),
+              filter_jhu(ds.jhu, "China_Rest", function(ds) {
+                ds <- subset(ds, Country.Region == "China" & Province.State != "Hubei")
+                ddply(ds, .(Country.Region, Date, Value), summarize, Count = sum(Count))
+              }))
   ds
 }
 
-filter_country_generic <- function(ds, country) {
-  ds <- subset(ds, Country.Region == country)
-}
+filter_location <- function(ds, location) subset(ds, Location == location)
 
-filter_country_province <- function(ds, country) {
-  ds <- subset(ds, Province.State == country)
-}
-
-filter_country_summarize <- function(ds, country) {
-  ds <- filter_country_generic(ds, country)
-  ddply(ds, .(Country.Region, Date, Value), summarize, Count = sum(Count))
-}
-
-filter_country_rename <- function(old_name) {
-  return(function(ds, country) {
-    filter_country_generic(ds, old_name)
-  })
-}
-
-filter_country_region <- function(countries) {
-  return(function(ds, country) {
-    ds <- subset(ds, Country.Region %in% countries)
+filter_region <- function(locations) {
+  return(function(ds, location) {
+    ds <- subset(ds, Location %in% locations)
     ddply(ds, .(Date, Value), summarize, Count = sum(Count))
   })
 }
@@ -88,9 +98,7 @@ plot_cumulative <- function(ds) {
           legend.box.background = element_blank())
 }
 
-try_sma <- function(x, n) {
-  tryCatch(TTR::SMA(x, n), error = function(e) { x })
-}
+try_sma <- function(x, n) tryCatch(TTR::SMA(x, n), error = function(e) { x })
 
 compute_daily_change <- function(ds) {
   ds <- ds[order(ds$Value, ds$Date), ]
@@ -149,8 +157,8 @@ plot_doubling_rate <- function(ds, first_date) {
     labs(subtitle = "Days since last doubling")
 }
 
-plot_country <- function(ds, country, filter_fun = filter_country_generic, plot_png = F) {
-  ds <- filter_fun(ds, country)
+plot_location <- function(ds, location, filter_fun = filter_location, plot_png = F) {
+  ds <- filter_fun(ds, location)
   ds.daily_change <- compute_daily_change(ds)
   max_daily_change <- ceiling(max(ds.daily_change$Rolling_Daily_Change, na.rm = T) * 20) / 20
   first_date <- min(subset(ds, Value == "Deaths" & Count > 0)$Date)
@@ -163,20 +171,20 @@ plot_country <- function(ds, country, filter_fun = filter_country_generic, plot_
                  plot_daily_cases(ds.daily_change, "Infections", colors[1]),
                  plot_daily_cases(ds.daily_change, "Deaths", colors[2]),
                  ncol = 1, nrow = 4, heights = c(1.5, 1, 1, 1), align = "hv")
-  country <- gsub(' ', '-', country)
-  ggsave(sprintf("plots/%s.pdf", country), plot = p, width = 5, height = 8)
+  location <- gsub(' ', '-', location)
+  ggsave(sprintf("plots/%s.pdf", location), plot = p, width = 5, height = 8)
   if (plot_png) {
-    ggsave(sprintf("plots/%s.png", country), plot = p, width = 5, height = 8, dpi = 100)
+    ggsave(sprintf("plots/%s.png", location), plot = p, width = 5, height = 8, dpi = 100)
   }
 }
 
 ds <- read_data()
 
-plot_country(ds, "World", function(ds, country) {
+plot_location(ds, "World", function(ds, location) {
   ddply(ds, .(Date, Value), summarize, Count = sum(Count))
 }, plot_png = T)
 
-plot_country(ds, "European-Union", filter_country_region(
+plot_location(ds, "European-Union", filter_region(
   c("Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus",
     "Czechia", "Denmark", "Estonia", "Finland", "France",
     "Germany", "Greece", "Hungary", "Ireland", "Italy",
@@ -185,107 +193,109 @@ plot_country(ds, "European-Union", filter_country_region(
     "Spain", "Sweden")), 
   plot_png = T)
 
-plot_country(ds, "Africa", filter_country_region(
-  c("Algeria", "Angola", "Benin", "Burkina Faso", "Cabo Verde", 
-    "Cameroon", "Central African Republic", "Chad", "Congo (Brazzaville)", 
-    "Congo (Kinshasa)", "Cote d'Ivoire", "Djibouti", "Egypt", "Equatorial Guinea", 
-    "Eritrea", "Eswatini", "Ethiopia", "Gabon", "Gambia", 
-    "Ghana", "Guinea", "Kenya", "Liberia", "Madagascar", 
-    "Malaysia", "Maldives", "Mauritania", "Mauritius", "Morocco", 
-    "Namibia", "Niger", "Nigeria", "Panama", "Senegal", 
-    "Seychelles", "Somalia", "South Africa", "Togo", "Tunisia", 
-    "Uganda", "Zambia", "Zimbabwe", "Mozambique", "Libya", 
-    "Guinea-Bissau", "Mali", "Botswana", "Burundi", "Sierra Leone", 
-    "Malawi", "South Sudan", "Western Sahara", "Sao Tome and Principe")))
+plot_location(ds, "Africa", filter_region(
+  c("Algeria", "Angola", "Benin", "Botswana", "Burkina_Faso", "Burundi", 
+    "Cameroon", "Cape_Verde", "Central_African_Republic", "Chad", "Congo", 
+    "Cote_dIvoire", "Democratic_Republic_of_the_Congo", "Djibouti", "Egypt", 
+    "Equatorial_Guinea", "Eritrea", "Eswatini", "Ethiopia", "Gabon", "Gambia", 
+    "Ghana", "Guinea", "Guinea_Bissau", "Kenya", "Liberia", "Libya", 
+    "Madagascar", "Malawi", "Mali", "Mauritania", "Mauritius", "Morocco", 
+    "Mozambique", "Namibia", "Niger", "Nigeria", "Rwanda", 
+    "Sao_Tome_and_Principe", "Senegal", "Seychelles", "Sierra_Leone", 
+    "Somalia", "South_Africa", "South_Sudan", "Sudan", "Togo", "Tunisia", 
+    "Uganda", "United_Republic_of_Tanzania", "Zambia", "Zimbabwe")))
 
-plot_country(ds, "Americas", filter_country_region(
-  c("Antigua and Barbuda", "Argentina", "Bahamas", "Barbados", "Bolivia",
-    "Brazil", "Canada", "Chile", "Colombia", "Costa Rica", "Cuba", 
-    "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", 
-    "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Nicaragua", 
-    "Paraguay", "Peru", "Rwanda", "Saint Lucia", "Saint Vincent and the Grenadines", 
-    "Suriname", "Trinidad and Tobago", "Uruguay", "US", 
-    "Venezuela", "Dominica", "Grenada", "Belize", "Saint Kitts and Nevis")))
+plot_location(ds, "Americas", filter_region(
+  c("Anguilla", "Antigua_and_Barbuda", "Argentina", "Aruba", "Bahamas", 
+    "Barbados", "Belize", "Bermuda", "Bolivia", 
+    "Bonaire, Saint Eustatius and Saba", "Brazil", "British_Virgin_Islands", 
+    "Canada", "Cayman_Islands", "Chile", "Colombia", "Costa_Rica", "Cuba", 
+    "Curaçao", "Dominica", "Dominican_Republic", "Ecuador", "El_Salvador", 
+    "Falkland_Islands_(Malvinas)", "Greenland", "Grenada", "Guatemala", 
+    "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Montserrat", 
+    "Nicaragua", "Panama", "Paraguay", "Peru", "Puerto_Rico", 
+    "Saint_Kitts_and_Nevis", "Saint_Lucia", 
+    "Saint_Vincent_and_the_Grenadines", "Sint_Maarten", "Suriname", 
+    "Trinidad_and_Tobago", "Turks_and_Caicos_islands", 
+    "United_States_of_America", "United_States_Virgin_Islands", "Uruguay", 
+    "Venezuela")))
 
-plot_country(ds, "Asia", filter_country_region(
-  c("Afghanistan", "Armenia", "Azerbaijan", "Bahrain", "Bangladesh", 
-    "Bhutan", "Brunei", "Cambodia", "China", "Fiji", "Georgia", 
-    "India", "Indonesia", "Iran", "Iraq", "Israel", 
-    "Japan", "Jordan", "Kazakhstan", "Korea, South", "Kuwait", 
-    "Kyrgyzstan", "Lebanon", "Mongolia", "Nepal", "Oman", 
-    "Pakistan", "Philippines", "Qatar", "Saudi Arabia", "Singapore", 
-    "Sri Lanka", "Sudan", "Taiwan*", "Thailand", "United Arab Emirates", 
-    "Uzbekistan", "Vietnam", "Syria", "Timor-Leste", "Laos", 
-    "West Bank and Gaza", "Burma")))
+plot_location(ds, "Asia", filter_region(
+  c("Afghanistan", "Bahrain", "Bangladesh", "Bhutan", "Brunei_Darussalam", 
+    "Cambodia", "China", "India", "Indonesia", "Iran", "Iraq", "Israel", 
+    "Japan", "Jordan", "Kazakhstan", "Kuwait", "Kyrgyzstan", "Laos", 
+    "Lebanon", "Malaysia", "Maldives", "Mongolia", "Myanmar", "Nepal", 
+    "Oman", "Pakistan", "Palestine", "Philippines", "Qatar", "Saudi_Arabia", 
+    "Singapore", "South_Korea", "Sri_Lanka", "Syria", "Taiwan", "Thailand", 
+    "Timor_Leste", "Turkey", "United_Arab_Emirates", "Uzbekistan", "Vietnam", 
+    "Yemen")))
 
-plot_country(ds, "Europe", filter_country_region(
-  c("Albania", "Andorra", "Austria", "Belarus", "Belgium", 
-    "Bosnia and Herzegovina", "Bulgaria", "Croatia", "Cyprus", "Czechia", 
-    "Denmark", "Estonia", "Finland", "France", "Germany", 
-    "Greece", "Holy See", "Hungary", "Iceland", "Ireland", 
-    "Italy", "Kosovo", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", 
-    "Malta", "Moldova", "Monaco", "Montenegro", "Netherlands", 
-    "North Macedonia", "Norway", "Poland", "Portugal", "Romania", 
-    "Russia", "San Marino", "Serbia", "Slovakia", "Slovenia", 
-    "Spain", "Sweden", "Switzerland", "Turkey", "Ukraine", "United Kingdom")))
+plot_location(ds, "Europe", filter_region(
+  c("Albania", "Andorra", "Armenia", "Austria", "Azerbaijan", "Belarus", 
+    "Belgium", "Bosnia_and_Herzegovina", "Bulgaria", "Croatia", "Cyprus", 
+    "Czechia", "Denmark", "Estonia", "Faroe_Islands", "Finland", "France", 
+    "Georgia", "Germany", "Gibraltar", "Greece", "Guernsey", "Holy_See", 
+    "Hungary", "Iceland", "Ireland", "Isle_of_Man", "Italy", "Jersey", 
+    "Kosovo", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", "Malta", 
+    "Moldova", "Monaco", "Montenegro", "Netherlands", "North_Macedonia", 
+    "Norway", "Poland", "Portugal", "Romania", "Russia", "San_Marino", 
+    "Serbia", "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland", 
+    "Ukraine", "United_Kingdom")))
 
-plot_country(ds, "Oceania", filter_country_region(
-  c("Australia", "New Zealand", "Papua New Guinea", "Tanzania")))
+plot_location(ds, "Oceania", filter_region(
+  c("Australia", "Fiji", "French_Polynesia", "Guam", "New_Caledonia", 
+    "New_Zealand", "Northern_Mariana_Islands", "Papua_New_Guinea")))
 
 # Countries
-plot_country(ds, "Austria")
-plot_country(ds, "Belgium")
-plot_country(ds, "Bulgaria")
-plot_country(ds, "Croatia")
-plot_country(ds, "Cyprus")
-plot_country(ds, "Czechia")
-plot_country(ds, "Denmark", filter_country_summarize)
-plot_country(ds, "Estonia")
-plot_country(ds, "Finland")
-plot_country(ds, "France", filter_country_summarize)
-plot_country(ds, "Germany", plot_png = T)
-plot_country(ds, "Greece")
-plot_country(ds, "Hungary")
-plot_country(ds, "Iceland")
-plot_country(ds, "Ireland")
-plot_country(ds, "Italy", plot_png = T)
-plot_country(ds, "Latvia")
-plot_country(ds, "Lithuania")
-plot_country(ds, "Luxembourg")
-plot_country(ds, "Malta")
-plot_country(ds, "Netherlands", filter_country_summarize)
-plot_country(ds, "Norway")
-plot_country(ds, "Poland")
-plot_country(ds, "Portugal")
-plot_country(ds, "Romania")
-plot_country(ds, "Slovakia")
-plot_country(ds, "Slovenia")
-plot_country(ds, "Spain")
-plot_country(ds, "Sweden")
-plot_country(ds, "Switzerland")
-plot_country(ds, "Turkey")
-plot_country(ds, "United Kingdom", filter_country_summarize)
+plot_location(ds, "Austria")
+plot_location(ds, "Belgium")
+plot_location(ds, "Bulgaria")
+plot_location(ds, "Croatia")
+plot_location(ds, "Cyprus")
+plot_location(ds, "Czechia")
+plot_location(ds, "Denmark")
+plot_location(ds, "Estonia")
+plot_location(ds, "Finland")
+plot_location(ds, "France")
+plot_location(ds, "Germany", plot_png = T)
+plot_location(ds, "Greece")
+plot_location(ds, "Hungary")
+plot_location(ds, "Iceland")
+plot_location(ds, "Ireland")
+plot_location(ds, "Italy", plot_png = T)
+plot_location(ds, "Latvia")
+plot_location(ds, "Lithuania")
+plot_location(ds, "Luxembourg")
+plot_location(ds, "Malta")
+plot_location(ds, "Netherlands")
+plot_location(ds, "Norway")
+plot_location(ds, "Poland")
+plot_location(ds, "Portugal")
+plot_location(ds, "Romania")
+#plot_location(ds, "Slovakia")
+plot_location(ds, "Slovenia")
+plot_location(ds, "Spain")
+plot_location(ds, "Sweden")
+plot_location(ds, "Switzerland")
+plot_location(ds, "Turkey")
+plot_location(ds, "United_Kingdom")
 
 # Americas
-plot_country(ds, "United States", function(ds, country) { filter_country_summarize(ds, "US") })
-plot_country(ds, "Brazil")
-plot_country(ds, "Canada", filter_country_summarize)
+plot_location(ds, "United_States_of_America")
+plot_location(ds, "Brazil")
+plot_location(ds, "Canada")
 
 # Asia
-plot_country(ds, "China", filter_country_summarize)
-plot_country(ds, "China Hubei", function(ds, country) { filter_country_province(ds, "Hubei") })
-plot_country(ds, "China Rest", function(ds, country) {
-  ds <- filter_country_generic(ds, "China")
-  ds <- subset(ds, Province.State != "Hubei")
-  ddply(ds, .(Country.Region, Date, Value), summarize, Count = sum(Count))
-})
-plot_country(ds, "Hong Kong", filter_country_province)
-plot_country(ds, "Iran")
-plot_country(ds, "Japan")
-plot_country(ds, "South Korea", filter_country_rename("Korea, South"))
-plot_country(ds, "Taiwan", filter_country_rename("Taiwan*"))
-plot_country(ds, "Singapore")
+plot_location(ds, "China")
+plot_location(ds, "China_Hubei")
+plot_location(ds, "China_Rest")
+plot_location(ds, "Hong_Kong")
+plot_location(ds, "Iran")
+plot_location(ds, "Japan")
+plot_location(ds, "South_Korea")
+plot_location(ds, "Taiwan")
+plot_location(ds, "Singapore")
 
 # Pacific
-plot_country(ds, "Australia", filter_country_summarize)
-plot_country(ds, "New Zealand")
+plot_location(ds, "Australia")
+plot_location(ds, "New_Zealand")

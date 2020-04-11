@@ -1,16 +1,21 @@
 #+TITLE: Analysis of COVID-19 cases by country
 
-Based on [[https://github.com/CSSEGISandData/COVID-19][data provided by Johns Hopkins CSSE]]. Partially inspired by
-[[https://www.zeit.de/wissen/gesundheit/coronavirus-echtzeit-karte-deutschland-landkreise-infektionen-ausbreitung][Die Zeit]] and [[http://www.dkriesel.com/corona][David Kriesel]].
+Partially inspired by [[https://www.zeit.de/wissen/gesundheit/coronavirus-echtzeit-karte-deutschland-landkreise-infektionen-ausbreitung][Die Zeit]] and [[http://www.dkriesel.com/corona][David Kriesel]].
 
 - Plots show development in a country after first reported death.
 - Blue and red lines in Days since last doubling show 3-day moving average.
 - Blue and red lines in Daily reported cases and deaths show 5-day moving average.
 
+Data sources:
+
+- [[https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide][European Centre for Disease Prevention and Control]]
+- [[https://github.com/CSSEGISandData/COVID-19][Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE)]]
+
 Last update: [2020-04-11 Sa]
 
 * Changelog
 
+- [2020-04-11 Sa] Switched to ECDC data.
 - [2020-04-08 Mi] Initial cleaned-up version.
 
 * Todo
@@ -37,7 +42,7 @@ Last update: [2020-04-11 Sa]
 
 * Other countries
 
-- [[file:plots/European-Union.pdf][European Union]]
+- [[file:plots/European_Union.pdf][European Union]]
 - [[file:plots/World.pdf][World]]
 - [[file:plots/Africa.pdf][Africa]]
 - [[file:plots/Americas.pdf][Americas]]
@@ -60,10 +65,13 @@ Last update: [2020-04-11 Sa]
 - [[file:plots/Germany.pdf][Germany]]
 - [[file:plots/Greece.pdf][Greece]]
 - [[file:plots/Hungary.pdf][Hungary]]
+- [[file:plots/Iceland.pdf][Iceland]]
 - [[file:plots/Ireland.pdf][Ireland]]
 - [[file:plots/Italy.pdf][Italy]]
+- [[file:plots/Latvia.pdf][Latvia]]
 - [[file:plots/Lithuania.pdf][Lithuania]]
 - [[file:plots/Luxembourg.pdf][Luxembourg]]
+- [[file:plots/Malta.pdf][Malta]]
 - [[file:plots/Netherlands.pdf][Netherlands]]
 - [[file:plots/Norway.pdf][Norway]]
 - [[file:plots/Poland.pdf][Poland]]
@@ -74,26 +82,26 @@ Last update: [2020-04-11 Sa]
 - [[file:plots/Sweden.pdf][Sweden]]
 - [[file:plots/Switzerland.pdf][Switzerland]]
 - [[file:plots/Turkey.pdf][Turkey]]
-- [[file:plots/United-Kingdom.pdf][United Kingdom]]
+- [[file:plots/United_Kingdom.pdf][United Kingdom]]
 
 ** Americas
 
 - [[file:plots/Brazil.pdf][Brazil]]
 - [[file:plots/Canada.pdf][Canada]]
-- [[file:plots/United-States.pdf][United States]]
+- [[file:plots/United_States_of_America.pdf][United States]]
 
 ** Asia
 
-- [[file:plots/China.pdf][China]] ([[file:plots/China-Hubei.pdf][Hubei]], [[file:plots/China-Rest.pdf][Rest]])
-- [[file:plots/Hong-Kong.pdf][Hong Kong]]
+- [[file:plots/China.pdf][China]] ([[file:plots/China_Hubei.pdf][Hubei]], [[file:plots/China_Rest.pdf][Rest]])
+- [[file:plots/Hong_Kong.pdf][Hong Kong]]
 - [[file:plots/Iran.pdf][Iran]]
 - [[file:plots/Japan.pdf][Japan]]
 - [[file:plots/Singapore.pdf][Singapore]]
-- [[file:plots/South-Korea.pdf][South Korea]]
+- [[file:plots/South_Korea.pdf][South Korea]]
 - [[file:plots/Taiwan.pdf][Taiwan]]
 
 ** Oceania
 
 - [[file:plots/Australia.pdf][Australia]]
-- [[file:plots/New-Zealand.pdf][New Zealand]]
+- [[file:plots/New_Zealand.pdf][New Zealand]]
 
