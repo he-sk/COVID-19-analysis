@@ -121,8 +121,8 @@ plot_daily_change <- function(ds, max_value) {
 
 adaptive_number_scale <- function(x) {
   max_value <- max(x, na.rm = T)
-  if (max_value <= 1) {
-    scales::number(x, accuracy = 0.1)
+  if (max_value < 1000) {
+    x
   } else {
     scales::number(x)
   }
@@ -144,7 +144,7 @@ plot_doubling_rate <- function(ds, first_date) {
   ggplot(ds, aes(x = Date, y = Rolling_Doubling_Rate, color = Value)) +
     geom_line(linetype = "solid", size = 2) +
     scale_x_date(NULL, expand = c(0, 0), limits = c(first_date, NA)) +
-    scale_y_continuous(NULL, expand = c(0, 0), limits = c(0, NA), labels = scales::number) +
+    scale_y_continuous(NULL, expand = c(0, 0), limits = c(0, NA), labels = adaptive_number_scale) +
     scale_color_manual(values = colors) +
     labs(subtitle = "Days since last doubling")
 }
