@@ -35,18 +35,6 @@ reshape_data_jhu <- function(ds, value) {
   ds
 }
 
-read_data_jhu <- function() {
-  ds <- rbind(reshape_data_jhu(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"), "Deaths"),
-              reshape_data_jhu(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"), "Infections"))
-  ds <- within(ds, {
-    Date <- as.Date(strptime(Date, format = 'X%m.%d.%y'))
-    Value <- factor(Value, levels = c("Infections", "Deaths"))
-    Lat <- NULL
-    Long <- NULL
-  })
-  ds
-}
-
 filter_jhu <- function(ds, location, filter_fun = filter_jhu_province) {
   ds <- filter_fun(ds)
   ds <- within(ds, {
@@ -57,17 +45,20 @@ filter_jhu <- function(ds, location, filter_fun = filter_jhu_province) {
   ds
 }
 
-read_data <- function() {
-  ds.ecdc <- read_data_ecdc()
-  ds.jhu <- read_data_jhu()
-  ds <- rbind(ds.ecdc,
-              filter_jhu(ds.jhu, "Hong_Kong", function(ds) subset(ds, Province.State == "Hong Kong")),
-              filter_jhu(ds.jhu, "China_Hubei", function(ds) subset(ds, Province.State == "Hubei")),
-              filter_jhu(ds.jhu, "China_Rest", function(ds) {
-                ds <- subset(ds, Country.Region == "China" & Province.State != "Hubei")
-                ddply(ds, .(Country.Region, Date, Value), summarize, Count = sum(Count))
-              }))
-  ds
+read_data_jhu <- function() {
+  ds <- rbind(reshape_data_jhu(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"), "Deaths"),
+              reshape_data_jhu(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"), "Infections"))
+  ds <- within(ds, {
+    Date <- as.Date(strptime(Date, format = 'X%m.%d.%y'))
+    Value <- factor(Value, levels = c("Infections", "Deaths"))
+    Lat <- NULL
+    Long <- NULL
+  })
+  rbind(filter_jhu(ds, "Hong_Kong", function(ds) subset(ds, Province.State == "Hong Kong")),
+        filter_jhu(ds, "China_Hubei", function(ds) subset(ds, Province.State == "Hubei")),
+        filter_jhu(ds, "China_Rest", function(ds) {
+          ds <- subset(ds, Country.Region == "China" & Province.State != "Hubei")
+          ddply(ds, .(Country.Region, Date, Value), summarize, Count = sum(Count))}))
 }
 
 filter_location <- function(ds, location) subset(ds, Location == location)
@@ -178,7 +169,8 @@ plot_location <- function(ds, location, filter_fun = filter_location, plot_png =
   }
 }
 
-ds <- read_data()
+ds <- read_data_ecdc()
+ds.jhu <- read_data_jhu()
 
 plot_location(ds, "World", function(ds, location) {
   ddply(ds, .(Date, Value), summarize, Count = sum(Count))
@@ -287,9 +279,9 @@ plot_location(ds, "Canada")
 
 # Asia
 plot_location(ds, "China")
-plot_location(ds, "China_Hubei")
-plot_location(ds, "China_Rest")
-plot_location(ds, "Hong_Kong")
+plot_location(ds.jhu, "China_Hubei")
+plot_location(ds.jhu, "China_Rest")
+plot_location(ds.jhu, "Hong_Kong")
 plot_location(ds, "Iran")
 plot_location(ds, "Japan")
 plot_location(ds, "South_Korea")
