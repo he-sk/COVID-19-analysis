@@ -11,7 +11,7 @@ Data sources:
 - [[https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide][European Centre for Disease Prevention and Control]]
 - [[https://github.com/CSSEGISandData/COVID-19][Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE)]]
 
-Last update: [2020-04-13 Mo]
+Last update: [2020-04-14 Di]
 
 * Changelog
 
