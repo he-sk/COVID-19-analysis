@@ -18,7 +18,7 @@ theme_update(panel.grid.minor = element_blank(),
 colors <- c("#7570b3", "#d95f02")
 
 read_data_ecdc <- function() {
-  ds <- read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv", na.strings = "", fileEncoding = "UTF-8-BOM")[c(1, 11, 5, 6)]
+  ds <- read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv", na.strings = "", fileEncoding = "UTF-8-BOM") [c(1, 7, 5, 6)]
   names(ds) <- c("Date", "Location", "Infections", "Deaths")
   ds$Date <- as.Date(strptime(ds$Date, format = "%d/%m/%Y"))
   ds <- ds[order(ds$Date), ]
